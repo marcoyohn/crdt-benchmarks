@@ -13,10 +13,11 @@ export class YjsFactory {
   /**
    * @param {function(Uint8Array):void} [updateHandler]
    * @param {boolean} [connectToServer]
+   * @param {string} [serverUrl]
    * @param {string} [documentName]
    */
-  create (updateHandler, connectToServer, documentName) {
-    return new YjsCRDT(updateHandler, connectToServer, documentName)
+  create (updateHandler, connectToServer, serverUrl, documentName) {
+    return new YjsCRDT(updateHandler, connectToServer, serverUrl, documentName)
   }
 
   getName () {
@@ -31,9 +32,10 @@ export class YjsCRDT {
   /**
    * @param {function(Uint8Array):void} [updateHandler]
    * @param {boolean} [connectToServer]
+   * @param {string} [serverUrl]
    * @param {string} [documentName]
    */
-  constructor (updateHandler, connectToServer, documentName) {
+  constructor (updateHandler, connectToServer, serverUrl, documentName) {
     this.ydoc = new Y.Doc()
     if (updateHandler) {
       this.ydoc.on('updateV2', update => {
@@ -51,16 +53,16 @@ export class YjsCRDT {
           websocketProvider: new HocuspocusProviderWebsocket({
             // We don’t need which port the server is running on, but
             // we can get the URL from the passed server instance.
-            url: "ws://yjs-she.test.seewo.com",
+            url: serverUrl, //"ws://yjs-she.test.seewo.com",
+            parameters: {wopiEnabled: '1', yDocField: 'map'},
             // Pass a polyfill to use WebSockets in a Node.js environment.
             WebSocketPolyfill: WebSocket,
           }),
-          url: "ws://yjs-she.test.seewo.com",
           name: documentName,
           document: this.ydoc,
           preserveConnection: false,
-          // token: "token-123",
-          parameters: {wopiEnabled: '1', yDocField: 'map'}
+          token: "eyJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIxMzM2ODc1MjgxMjg1MTM7c21odHF6bmpnd3ZudndycHV4c3lxcnk1N201NDI1MTE7MSIsImV4cCI6MTcwNDc5OTk4M30.Wv9JOfMwMcdhbn8RXgAXFzU8dY6JPox0xpIxcTOP31ewhqQec6cfwy0oJFrKNVA8F2KakBZRjipVBPtgCd7s0bHuQca-3GCHLxIf_UvywgLB9KGrdaeiwNaXSCEPzq7aakwQyZ4M1Jy91FEJSp-CYzz_kCJAOCXkoXrRpyRuKCUXPL7H41WeaQMtv86YUKsRVfodKlwYqtRxhLaj84JyFrSBVsgAtijZBcuDZKJKVISjXCOoOVxp8swAw-jRMSV_P_zdc-njIz59c_qMR5u2h8H9oW8aeGzoAiVVBs8CZFa5OQ7a56meZF0egb2M3jmVoJgng2SLAU12aXZ4Gql-1C46kKjZ10KLd94CW3PGzfmtsZ9xuGJm4HQnVBdstFxFH5FIsZRC5Ig7f3vyWB8molFzb8RVPDXWM747TA7i8wWz7VHMEWVO6MKbovTjgMBFoT5K6bseyTptrfIEuf4Z0FjSycmHh15hjsPQf3lVD_g1lCY5CBCOjpiUGqN-dWE3t31Nxsp3hGGlWxsl6TJdYwF-k4lgD7WuCZPex-sjWCDEBidf8aBjl_z6ZBiowBjNoelWK4A-3wCGT1Sx-OyrBZQgrF64KkbjhnFjmWDEgAUxTpNSKNzgFGYoaZEOvndXKBQ-jVxEzbZgrrOkHt5yUg0DjUyv5H_fXAgbVK5Pfps"
+          
         } 
       );
     }

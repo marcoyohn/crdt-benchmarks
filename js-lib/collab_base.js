@@ -21,7 +21,7 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
     let encodedState = null
     {
       const docUpdates = []
-      const doc = crdtFactory.create(update => { docUpdates.push(update) }, true, 'collab_base')
+      const doc = crdtFactory.create(update => { docUpdates.push(update) }, true, 'ws://127.0.0.1:1234', 'https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817')
       benchmarkTime(crdtFactory.getName(), `${id} (time)`, () => {
         for (let i = 0; i < inputData.length; i++) {
           changeFunction(doc, inputData[i], i)

@@ -653,12 +653,12 @@
     "[CollabBase] 基本场景 (memUsed)": {
       "ywasm": "0 B",
       "automerge-wasm": "0 B",
-      "yjs": "0 B"
+      "yjs": "9.7 kB"
     },
     "[CollabBase] 基本场景 (parseTime)": {
       "ywasm": "44 ms",
       "automerge-wasm": "56 ms",
-      "yjs": "54 ms"
+      "yjs": "52 ms"
     }
   }
 }

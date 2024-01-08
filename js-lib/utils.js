@@ -129,10 +129,11 @@ export class CrdtFactory {
   /**
    * @param {function(Uint8Array|string):void} [updateHandler]
    * @param {boolean} [connectToServer]
+   * @param {string} [serverUrl]
    * @param {string} [documentName]
    * @return {AbstractCrdt}
    */
-  create (updateHandler, connectToServer, documentName) {
+  create (updateHandler, connectToServer, serverUrl, documentName) {
     error.methodUnimplemented()
   }
 
