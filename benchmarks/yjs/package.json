@@ -13,6 +13,10 @@
   "author": "Kevin Jahns",
   "license": "MIT",
   "dependencies": {
-    "yjs": "^13.5.12"
+    "ws": "^8.5.0",
+    "yjs": "^13.5.12",
+    "y-websocket": "^1.5.0",
+    "y-protocols": "^1.0.5",
+    "@hocuspocus/provider": "^2.4.0"
   }
 }

@@ -1,6 +1,8 @@
 
 import { AbstractCrdt, CrdtFactory } from '../../js-lib/index.js' // eslint-disable-line
 import * as Y from 'yjs'
+import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
+import WebSocket from 'ws'
 
 export const name = 'yjs'
 
@@ -10,9 +12,11 @@ export const name = 'yjs'
 export class YjsFactory {
   /**
    * @param {function(Uint8Array):void} [updateHandler]
+   * @param {boolean} [connectToServer]
+   * @param {string} [documentName]
    */
-  create (updateHandler) {
-    return new YjsCRDT(updateHandler)
+  create (updateHandler, connectToServer, documentName) {
+    return new YjsCRDT(updateHandler, connectToServer, documentName)
   }
 
   getName () {
@@ -26,8 +30,10 @@ export class YjsFactory {
 export class YjsCRDT {
   /**
    * @param {function(Uint8Array):void} [updateHandler]
+   * @param {boolean} [connectToServer]
+   * @param {string} [documentName]
    */
-  constructor (updateHandler) {
+  constructor (updateHandler, connectToServer, documentName) {
     this.ydoc = new Y.Doc()
     if (updateHandler) {
       this.ydoc.on('updateV2', update => {
@@ -37,6 +43,27 @@ export class YjsCRDT {
     this.yarray = this.ydoc.getArray('array')
     this.ymap = this.ydoc.getMap('map')
     this.ytext = this.ydoc.getText('text')
+
+    if (connectToServer) {
+      
+      this.provider = new HocuspocusProvider(
+        {
+          websocketProvider: new HocuspocusProviderWebsocket({
+            // We don’t need which port the server is running on, but
+            // we can get the URL from the passed server instance.
+            url: "ws://yjs-she.test.seewo.com",
+            // Pass a polyfill to use WebSockets in a Node.js environment.
+            WebSocketPolyfill: WebSocket,
+          }),
+          url: "ws://yjs-she.test.seewo.com",
+          name: documentName,
+          document: this.ydoc,
+          preserveConnection: false,
+          // token: "token-123",
+          parameters: {wopiEnabled: '1', yDocField: 'map'}
+        } 
+      );
+    }
   }
 
   /**

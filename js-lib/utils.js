@@ -128,9 +128,11 @@ export const deltaDeleteHelper = (doc, index, length) => {
 export class CrdtFactory {
   /**
    * @param {function(Uint8Array|string):void} [updateHandler]
+   * @param {boolean} [connectToServer]
+   * @param {string} [documentName]
    * @return {AbstractCrdt}
    */
-  create (updateHandler) {
+  create (updateHandler, connectToServer, documentName) {
     error.methodUnimplemented()
   }
 
