@@ -127,7 +127,7 @@ export const deltaDeleteHelper = (doc, index, length) => {
 
 export class CrdtFactory {
   /**
-   * @param {function(Uint8Array|string):void} [updateHandler]
+   * @param {function(Uint8Array|string, boolean):void} [updateHandler]
    * @param {boolean} [connectToServer]
    * @param {string} [serverUrl]
    * @param {string} [documentName]
@@ -250,6 +250,14 @@ export class AbstractCrdt {
    * @return {Map<string,any> | Object<string, any>}
    */
   getMap () {
+    error.methodUnimplemented()
+  }
+
+  /**
+   * 返回clientId
+   * @return {number}
+   */
+  getClientId() {
     error.methodUnimplemented()
   }
 }

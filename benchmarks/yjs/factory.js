@@ -1,4 +1,5 @@
 
+import { setBenchmarkResult, gen, N, benchmarkTime, logMemoryUsed, getMemUsed, runBenchmark } from '../../js-lib/utils.js'
 import { AbstractCrdt, CrdtFactory } from '../../js-lib/index.js' // eslint-disable-line
 import * as Y from 'yjs'
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
@@ -11,7 +12,7 @@ export const name = 'yjs'
  */
 export class YjsFactory {
   /**
-   * @param {function(Uint8Array):void} [updateHandler]
+   * @param {function(Uint8Array, boolean):void} [updateHandler]
    * @param {boolean} [connectToServer]
    * @param {string} [serverUrl]
    * @param {string} [documentName]
@@ -30,7 +31,7 @@ export class YjsFactory {
  */
 export class YjsCRDT {
   /**
-   * @param {function(Uint8Array):void} [updateHandler]
+   * @param {function(Uint8Array, boolean):void} [updateHandler]
    * @param {boolean} [connectToServer]
    * @param {string} [serverUrl]
    * @param {string} [documentName]
@@ -38,8 +39,9 @@ export class YjsCRDT {
   constructor (updateHandler, connectToServer, serverUrl, documentName) {
     this.ydoc = new Y.Doc()
     if (updateHandler) {
-      this.ydoc.on('update', update => {
-        updateHandler(update)
+      this.ydoc.on('update', (update, origin, doc, transaction) => {
+        // @ts-ignore
+        updateHandler(update, transaction.local)
       })
     }
     this.yarray = this.ydoc.getArray('array')
@@ -47,26 +49,49 @@ export class YjsCRDT {
     this.ytext = this.ydoc.getText('text')
 
     if (connectToServer) {
-      
       this.provider = new HocuspocusProvider(
         {
           websocketProvider: new HocuspocusProviderWebsocket({
             // We don’t need which port the server is running on, but
             // we can get the URL from the passed server instance.
             url: serverUrl, //"ws://yjs-she.test.seewo.com",
-            parameters: {wopiEnabled: '1', yDocField: 'map'},
+            parameters: {wopiEnabled: '0', yDocField: 'map'},
             // Pass a polyfill to use WebSockets in a Node.js environment.
             WebSocketPolyfill: WebSocket,
           }),
           name: documentName,
           document: this.ydoc,
           preserveConnection: false,
-          //token: "mock",
-          token: "eyJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIxMzM2ODc1MjgxMjg1MTM7c21odHF6bmpnd3ZudndycHV4c3lxcnk1N201NDI1MTE7MSIsImV4cCI6MTcwNDc5OTk4M30.Wv9JOfMwMcdhbn8RXgAXFzU8dY6JPox0xpIxcTOP31ewhqQec6cfwy0oJFrKNVA8F2KakBZRjipVBPtgCd7s0bHuQca-3GCHLxIf_UvywgLB9KGrdaeiwNaXSCEPzq7aakwQyZ4M1Jy91FEJSp-CYzz_kCJAOCXkoXrRpyRuKCUXPL7H41WeaQMtv86YUKsRVfodKlwYqtRxhLaj84JyFrSBVsgAtijZBcuDZKJKVISjXCOoOVxp8swAw-jRMSV_P_zdc-njIz59c_qMR5u2h8H9oW8aeGzoAiVVBs8CZFa5OQ7a56meZF0egb2M3jmVoJgng2SLAU12aXZ4Gql-1C46kKjZ10KLd94CW3PGzfmtsZ9xuGJm4HQnVBdstFxFH5FIsZRC5Ig7f3vyWB8molFzb8RVPDXWM747TA7i8wWz7VHMEWVO6MKbovTjgMBFoT5K6bseyTptrfIEuf4Z0FjSycmHh15hjsPQf3lVD_g1lCY5CBCOjpiUGqN-dWE3t31Nxsp3hGGlWxsl6TJdYwF-k4lgD7WuCZPex-sjWCDEBidf8aBjl_z6ZBiowBjNoelWK4A-3wCGT1Sx-OyrBZQgrF64KkbjhnFjmWDEgAUxTpNSKNzgFGYoaZEOvndXKBQ-jVxEzbZgrrOkHt5yUg0DjUyv5H_fXAgbVK5Pfps"
+          token: "mock",
+          //token: "eyJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIxMzM2ODc1MjgxMjg1MTM7c21odHF6bmpnd3ZudndycHV4c3lxcnk1N201NDI1MTE7MSIsImV4cCI6MTcwNDc5OTk4M30.Wv9JOfMwMcdhbn8RXgAXFzU8dY6JPox0xpIxcTOP31ewhqQec6cfwy0oJFrKNVA8F2KakBZRjipVBPtgCd7s0bHuQca-3GCHLxIf_UvywgLB9KGrdaeiwNaXSCEPzq7aakwQyZ4M1Jy91FEJSp-CYzz_kCJAOCXkoXrRpyRuKCUXPL7H41WeaQMtv86YUKsRVfodKlwYqtRxhLaj84JyFrSBVsgAtijZBcuDZKJKVISjXCOoOVxp8swAw-jRMSV_P_zdc-njIz59c_qMR5u2h8H9oW8aeGzoAiVVBs8CZFa5OQ7a56meZF0egb2M3jmVoJgng2SLAU12aXZ4Gql-1C46kKjZ10KLd94CW3PGzfmtsZ9xuGJm4HQnVBdstFxFH5FIsZRC5Ig7f3vyWB8molFzb8RVPDXWM747TA7i8wWz7VHMEWVO6MKbovTjgMBFoT5K6bseyTptrfIEuf4Z0FjSycmHh15hjsPQf3lVD_g1lCY5CBCOjpiUGqN-dWE3t31Nxsp3hGGlWxsl6TJdYwF-k4lgD7WuCZPex-sjWCDEBidf8aBjl_z6ZBiowBjNoelWK4A-3wCGT1Sx-OyrBZQgrF64KkbjhnFjmWDEgAUxTpNSKNzgFGYoaZEOvndXKBQ-jVxEzbZgrrOkHt5yUg0DjUyv5H_fXAgbVK5Pfps"
           
         } 
       );
     }
+
+    this.ymap.observe(ymapEvent => {
+      if(ymapEvent.transaction.local) {
+        // 忽略当前客户端自己的更新
+        return;
+      }
+      ymapEvent.changes.keys.forEach((change, key) => {
+        if (change.action === 'add'
+            || change.action === 'update') {
+          let val = ymapEvent.target.get(key);
+          if(val instanceof Y.AbstractType) {
+            return;
+          }
+          if(val.ts_) {
+            let now = new Date().getTime();
+            if(Math.abs(now - val.ts_) >= 200) {
+              setBenchmarkResult(name, `${key} (syncTimeout)`, `${Math.abs(now - val.ts_)} ms`)
+            }
+          }
+        } else if (change.action === 'delete') {
+          // do nothing
+        }
+      })
+    });
   }
 
   /**
@@ -80,7 +105,7 @@ export class YjsCRDT {
    * @param {Uint8Array} update
    */
   applyUpdate (update) {
-    Y.applyUpdateV2(this.ydoc, update)
+    Y.applyUpdate(this.ydoc, update)
   }
 
   /**
@@ -149,7 +174,12 @@ export class YjsCRDT {
    * @param {any} val
    */
   setMap (key, val) {
-    this.ymap.set(key, val)
+    if(val instanceof Y.AbstractType) {
+      this.ymap.set(key, val)
+    } else {
+      // 包装,便于计时
+      this.ymap.set(key, {v_:val, clientId_: this.provider?.awareness?.clientID, ts_: new Date().getTime()})
+    }
   }
 
   /**
@@ -157,5 +187,13 @@ export class YjsCRDT {
    */
   getMap () {
     return this.ymap.toJSON()
+  }
+
+  /**
+   * 返回clientId
+   * @return {number}
+   */
+  getClientId() {
+    return this.provider?.awareness?.clientID || 0;
   }
 }

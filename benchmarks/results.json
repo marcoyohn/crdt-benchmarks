@@ -633,32 +633,32 @@
     "[CollabBase] 基本场景 (time)": {
       "ywasm": "0 ms",
       "automerge-wasm": "0 ms",
-      "yjs": "66 ms"
+      "yjs": "61 ms"
     },
     "[CollabBase] 基本场景 (avgUpdateSize)": {
       "ywasm": "NaN bytes",
       "automerge-wasm": "NaN bytes",
-      "yjs": "56 bytes"
+      "yjs": "97 bytes"
     },
     "[CollabBase] 基本场景 (encodeTime)": {
       "ywasm": "0 ms",
       "automerge-wasm": "0 ms",
-      "yjs": "12 ms"
+      "yjs": "11 ms"
     },
     "[CollabBase] 基本场景 (docSize)": {
       "ywasm": "13 bytes",
       "automerge-wasm": "135 bytes",
-      "yjs": "42808 bytes"
+      "yjs": "83918 bytes"
     },
     "[CollabBase] 基本场景 (memUsed)": {
       "ywasm": "0 B",
       "automerge-wasm": "0 B",
-      "yjs": "588.5 kB"
+      "yjs": "337.9 kB"
     },
     "[CollabBase] 基本场景 (parseTime)": {
       "ywasm": "44 ms",
       "automerge-wasm": "56 ms",
-      "yjs": "74 ms"
+      "yjs": "59 ms"
     }
   }
 }

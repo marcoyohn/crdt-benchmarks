@@ -20,7 +20,8 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
   const benchmarkTemplate = (id, inputData, changeFunction) => {
     let encodedState = null
     const docUpdates = []
-    const doc = crdtFactory.create(update => { docUpdates.push(update) }, true, 'ws://127.0.0.1:1234', 'https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817')
+    // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
+    const doc = crdtFactory.create((update, local) => docUpdates.push(update), true, 'ws://127.0.0.1:1234', 'collab_base')
     benchmarkTime(crdtFactory.getName(), `${id} (time)`, () => {
       for (let i = 0; i < inputData.length; i++) {
         changeFunction(doc, inputData[i], i)
@@ -37,10 +38,23 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
 
     benchmarkTime(crdtFactory.getName(), `${id} (parseTime)`, () => {
       const startHeapUsed = getMemUsed()
-      const doc = crdtFactory.create()
-      doc.applyUpdate(encodedState)
       logMemoryUsed(crdtFactory.getName(), id, startHeapUsed)
     })
+    
+    // 定时更新
+    setInterval(() => {
+      let count = 0;
+      let randomMod = Math.ceil(Math.random()*1000)
+      for (let i = 0; i < inputData.length; i++) {
+        if(i % randomMod == 0) {
+          if(count > 5) {
+            break;
+          }
+          count++
+          changeFunction(doc, inputData[i], i)
+        }
+      }
+    }, 100);
   }
 
   await runBenchmark('[CollabBase] 基本场景', filter, benchmarkName => {
@@ -51,7 +65,8 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
     benchmarkTemplate(
       benchmarkName,
       inputData,
-      (doc, s, i) => { doc.setMap(s, benchmarkName + '_' + i) },
+      (doc, s, i) => { doc.setMap(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
     )
   })
+
 }
