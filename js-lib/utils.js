@@ -268,4 +268,12 @@ export class AbstractCrdt {
   getItemSize() {
     error.methodUnimplemented()
   }
+
+  /**
+   * 返回同步延迟数组
+   * @return {[]}
+   */
+  getSyncDelayTime() {
+    error.methodUnimplemented()
+  }
 }

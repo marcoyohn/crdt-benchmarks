@@ -67,13 +67,23 @@ export class YjsCRDT {
           
         } 
       );
+
+      this.provider.on("synced", () => {
+        this.providerSynced = true;
+      });
     }
 
+    this.syncTime = [];
     this.ymap.observe(ymapEvent => {
       if(ymapEvent.transaction.local) {
         // 忽略当前客户端自己的更新
         return;
       }
+      if(!this.providerSynced) {
+        console.log('wait for provider synced, ignore current event')
+        return;
+      }
+      // 加载完成后等待下一轮才开始计算超时
       ymapEvent.changes.keys.forEach((change, key) => {
         if (change.action === 'add'
             || change.action === 'update') {
@@ -83,6 +93,18 @@ export class YjsCRDT {
           }
           if(val.ts_) {
             let now = new Date().getTime();
+            let ts = Math.abs(now - val.ts_);
+            let index = Math.floor(ts/10);
+            if(index < 10) {
+              //[0,100)
+              this.syncTime[index] = (this.syncTime[index] || 0) + 1;
+            } else if(index < 20) {
+              // [100,200)
+              this.syncTime[10] = (this.syncTime[10] || 0) + 1;
+            } else {
+              // [200,]
+              this.syncTime[11] = (this.syncTime[11] || 0) + 1;
+            }
             if(Math.abs(now - val.ts_) >= 200) {
               setBenchmarkResult(name, `${key} (syncTimeout)`, `${Math.abs(now - val.ts_)} ms`)
             }
@@ -205,5 +227,14 @@ export class YjsCRDT {
     let size = 0;
     this.ydoc.store.clients.forEach(v => size = size + v.length);
     return size;
+  }
+
+  /**
+   * 返回同步延迟数组
+   * @return {[]}
+   */
+  getSyncDelayTime() {
+    // @ts-ignore
+    return this.syncTime;
   }
 }

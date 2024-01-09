@@ -22,7 +22,7 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://127.0.0.1:1234', 'collab_base')
+    }, true, 'ws://yjs-she.test.seewo.com', 'collab_base')
     
     for (let i = 0; i < inputData.length; i++) {
       changeFunction(doc, inputData[i], i)
@@ -38,22 +38,23 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
       const startHeapUsed = 0; //getMemUsed()
       logMemoryUsed(crdtFactory.getName(), id, startHeapUsed)
 
+      setBenchmarkResult(crdtFactory.getName(), `${id} (syncDelayTime)`, doc.getSyncDelayTime())
+
     }, 3000);
     
     // 定时更新
     setInterval(() => {
       let count = 0;
       let randomMod = Math.ceil(Math.random()*1000)
-      for (let i = 0; i < inputData.length; i++) {
-        if(i % randomMod == 0) {
-          if(count > 5) {
-            break;
-          }
-          count++
-          changeFunction(doc, inputData[i], i)
+      while(randomMod < 1000) {
+        if(count > 0) {
+          break;
         }
+        count++
+        changeFunction(doc, inputData[randomMod], randomMod);
+        randomMod = randomMod + randomMod;
       }
-    }, 100);
+    }, 16);
   }
 
   await runBenchmark('[CollabBase] 基本场景', filter, benchmarkName => {
