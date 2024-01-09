@@ -196,4 +196,14 @@ export class YjsCRDT {
   getClientId() {
     return this.provider?.awareness?.clientID || 0;
   }
+
+  /**
+   * 返回item个数
+   * @return {number}
+   */
+  getItemSize() {
+    let size = 0;
+    this.ydoc.store.clients.forEach(v => size = size + v.length);
+    return size;
+  }
 }

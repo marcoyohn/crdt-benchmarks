@@ -260,4 +260,12 @@ export class AbstractCrdt {
   getClientId() {
     error.methodUnimplemented()
   }
+
+  /**
+   * 返回item个数
+   * @return {number}
+   */
+  getItemSize() {
+    error.methodUnimplemented()
+  }
 }
