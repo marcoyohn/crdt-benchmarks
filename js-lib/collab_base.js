@@ -19,23 +19,22 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
    */
   const benchmarkTemplate = (id, inputData, changeFunction) => {
     let encodedState = null
-    {
-      const docUpdates = []
-      const doc = crdtFactory.create(update => { docUpdates.push(update) }, true, 'ws://127.0.0.1:1234', 'https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817')
-      benchmarkTime(crdtFactory.getName(), `${id} (time)`, () => {
-        for (let i = 0; i < inputData.length; i++) {
-          changeFunction(doc, inputData[i], i)
-        }
-      })
-      const updateSize = docUpdates.reduce((a, b) => a + b.length, 0)
-      setBenchmarkResult(crdtFactory.getName(), `${id} (avgUpdateSize)`, `${math.round(updateSize / inputData.length)} bytes`)
-      benchmarkTime(crdtFactory.getName(), `${id} (encodeTime)`, () => {
-        encodedState = doc.getEncodedState()
-      })
-      // @ts-ignore
-      const documentSize = encodedState.length
-      setBenchmarkResult(crdtFactory.getName(), `${id} (docSize)`, `${documentSize} bytes`)
-    }
+    const docUpdates = []
+    const doc = crdtFactory.create(update => { docUpdates.push(update) }, true, 'ws://127.0.0.1:1234', 'https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817')
+    benchmarkTime(crdtFactory.getName(), `${id} (time)`, () => {
+      for (let i = 0; i < inputData.length; i++) {
+        changeFunction(doc, inputData[i], i)
+      }
+    })
+    const updateSize = docUpdates.reduce((a, b) => a + b.length, 0)
+    setBenchmarkResult(crdtFactory.getName(), `${id} (avgUpdateSize)`, `${math.round(updateSize / inputData.length)} bytes`)
+    benchmarkTime(crdtFactory.getName(), `${id} (encodeTime)`, () => {
+      encodedState = doc.getEncodedState()
+    })
+    // @ts-ignore
+    const documentSize = encodedState.length
+    setBenchmarkResult(crdtFactory.getName(), `${id} (docSize)`, `${documentSize} bytes`)
+
     benchmarkTime(crdtFactory.getName(), `${id} (parseTime)`, () => {
       const startHeapUsed = getMemUsed()
       const doc = crdtFactory.create()
@@ -47,7 +46,7 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
   await runBenchmark('[CollabBase] 基本场景', filter, benchmarkName => {
     const inputData = [];
     for(let i = 0; i < 1000; i++) {
-      inputData.push['key_' + i];
+      inputData.push('key_' + i);
     }
     benchmarkTemplate(
       benchmarkName,
@@ -55,5 +54,4 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
       (doc, s, i) => { doc.setMap(s, benchmarkName + '_' + i) },
     )
   })
-  console.log('runBenchmark completed');
 }

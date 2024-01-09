@@ -1,7 +1,7 @@
 {
   "6000": {
     "Version": {
-      "yjs": "13.5.12",
+      "yjs": "13.6.10",
       "ywasm": "0.9.3",
       "automerge-wasm": "0.1.3"
     },
@@ -633,32 +633,32 @@
     "[CollabBase] 基本场景 (time)": {
       "ywasm": "0 ms",
       "automerge-wasm": "0 ms",
-      "yjs": "0 ms"
+      "yjs": "66 ms"
     },
     "[CollabBase] 基本场景 (avgUpdateSize)": {
       "ywasm": "NaN bytes",
       "automerge-wasm": "NaN bytes",
-      "yjs": "NaN bytes"
+      "yjs": "56 bytes"
     },
     "[CollabBase] 基本场景 (encodeTime)": {
       "ywasm": "0 ms",
       "automerge-wasm": "0 ms",
-      "yjs": "1 ms"
+      "yjs": "12 ms"
     },
     "[CollabBase] 基本场景 (docSize)": {
       "ywasm": "13 bytes",
       "automerge-wasm": "135 bytes",
-      "yjs": "13 bytes"
+      "yjs": "42808 bytes"
     },
     "[CollabBase] 基本场景 (memUsed)": {
       "ywasm": "0 B",
       "automerge-wasm": "0 B",
-      "yjs": "9.7 kB"
+      "yjs": "588.5 kB"
     },
     "[CollabBase] 基本场景 (parseTime)": {
       "ywasm": "44 ms",
       "automerge-wasm": "56 ms",
-      "yjs": "52 ms"
+      "yjs": "74 ms"
     }
   }
 }
