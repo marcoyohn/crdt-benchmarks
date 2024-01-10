@@ -8,7 +8,7 @@ import { CrdtFactory, AbstractCrdt } from './index.js' // eslint-disable-line
  * @param {CrdtFactory} crdtFactory
  * @param {function(string):boolean} filter
  */
-export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
+export const runBenchmarksCollabSyncFrequently = async (crdtFactory, filter) => {
   /**
    * Helper function to run a B1 benchmarks.
    *
@@ -43,7 +43,7 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
     }, 3000);
     
     // 定时更新
-    // 简单场景，1秒更新1个
+    // 同步频发，每秒同步120帧
     setInterval(() => {
       let count = 0;
       let randomMod = Math.ceil(Math.random()*1000)
@@ -55,10 +55,10 @@ export const runBenchmarksCollabBase = async (crdtFactory, filter) => {
         changeFunction(doc, inputData[randomMod], randomMod);
         randomMod = randomMod + randomMod;
       }
-    }, 1000);
+    }, 8);
   }
 
-  await runBenchmark('[CollabBase] 基本场景', filter, benchmarkName => {
+  await runBenchmark('[CollabSyncFrequently] 同步频繁场景', filter, benchmarkName => {
     const inputData = [];
     for(let i = 0; i < 1000; i++) {
       inputData.push('key_' + i);
