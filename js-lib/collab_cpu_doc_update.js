@@ -8,7 +8,7 @@ import { CrdtFactory, AbstractCrdt } from './index.js' // eslint-disable-line
  * @param {CrdtFactory} crdtFactory
  * @param {function(string):boolean} filter
  */
-export const runBenchmarksCollabAswareness = async (crdtFactory, filter) => {
+export const runBenchmarksCollabCpuDocUpdate = async (crdtFactory, filter) => {
   /**
    * Helper function to run a B1 benchmarks.
    *
@@ -16,7 +16,6 @@ export const runBenchmarksCollabAswareness = async (crdtFactory, filter) => {
    * @param {string} id name of the benchmark e.g. "[B1.1] Description"
    * @param {Array<T>} inputData
    * @param {function(AbstractCrdt, T, number):void} changeFunction Is called on every element in inputData
-   * @param {string} docName
    */
   const benchmarkTemplate = (id, inputData, changeFunction, docName) => {
     let docUpdateSize = 0
@@ -24,6 +23,12 @@ export const runBenchmarksCollabAswareness = async (crdtFactory, filter) => {
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
     }, true, 'ws://yjs-she.test.seewo.com', docName)
+    
+    doc.transact( () => {
+      for (let i = 0; i < inputData.length; i++) {
+        changeFunction(doc, inputData[i], i)
+      }
+    })
 
     // 定时统计
     let prevDocUpdateSize =  0
@@ -32,30 +37,43 @@ export const runBenchmarksCollabAswareness = async (crdtFactory, filter) => {
       setBenchmarkResult(crdtFactory.getName(), `${id} (updateSize)`, `${math.round(docUpdateSize - prevDocUpdateSize)} bytes`)
       prevDocUpdateSize = docUpdateSize;
 
-      const startHeapUsed = 0; //getMemUsed()
-      logMemoryUsed(crdtFactory.getName(), id, startHeapUsed)
+      setBenchmarkResult(crdtFactory.getName(), `${id} (syncDelayTime)`, doc.getSyncDelayTime())
 
-      setBenchmarkResult(crdtFactory.getName(), `${id} (awarenessSyncDelayTime)`, doc.getAwarenessSyncDelayTime())
-
-    }, 3000);
+    }, 10000);
     
     // 定时更新
+    // 同步频发，每秒同步60帧
     setInterval(() => {
-      changeFunction(doc, 'key_0', 0);
+      let count = 0;
+      let randomMod = Math.ceil(Math.random()*inputData.length)
+      while(randomMod < inputData.length) {
+        if(count > 0) {
+          break;
+        }
+        count++
+        changeFunction(doc, inputData[randomMod], randomMod);
+        randomMod = randomMod + randomMod;
+      }
     }, 16);
   }
 
-  await runBenchmark('[CollabAwareness] awareness场景', filter, benchmarkName => {
+  await runBenchmark('[CollabCpuDocUpdate] 多文档单用户并发更新场景', filter, benchmarkName => {
     const inputData = [];
-    for(let i = 0; i < 1; i++) {
+    for(let i = 0; i < 1000; i++) {
       inputData.push('key_' + i);
     }
-    benchmarkTemplate(
-      benchmarkName,
-      inputData,
-      (doc, s, i) => { doc.setAwareness(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
-      'collab_awareness'
-    ) 
+
+    let count = 0;
+    while(count < 20) {
+      benchmarkTemplate(
+        benchmarkName,
+        inputData,
+        (doc, s, i) => { doc.setMap(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
+        'CollabCpuDocUpdate_' + count + "_" +new Date().getTime()
+      );
+      count++
+    }
+
   })
 
 }
