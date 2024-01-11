@@ -24,9 +24,11 @@ export const runBenchmarksCollabSyncFrequently = async (crdtFactory, filter) => 
       docUpdateSize = docUpdateSize + update.length
     }, true, 'ws://yjs-she.test.seewo.com', docName)
     
-    for (let i = 0; i < inputData.length; i++) {
-      changeFunction(doc, inputData[i], i)
-    }
+    doc.transact( () => {
+      for (let i = 0; i < inputData.length; i++) {
+        changeFunction(doc, inputData[i], i)
+      }
+    })
 
     // 定时统计
     let prevDocUpdateSize =  0
@@ -35,15 +37,12 @@ export const runBenchmarksCollabSyncFrequently = async (crdtFactory, filter) => 
       setBenchmarkResult(crdtFactory.getName(), `${id} (updateSize)`, `${math.round(docUpdateSize - prevDocUpdateSize)} bytes`)
       prevDocUpdateSize = docUpdateSize;
 
-      const startHeapUsed = 0; //getMemUsed()
-      logMemoryUsed(crdtFactory.getName(), id, startHeapUsed)
-
       setBenchmarkResult(crdtFactory.getName(), `${id} (syncDelayTime)`, doc.getSyncDelayTime())
 
-    }, 3000);
+    }, 10000);
     
     // 定时更新
-    // 同步频发，每秒同步120帧
+    // 同步频发，每秒同步60帧
     setInterval(() => {
       let count = 0;
       let randomMod = Math.ceil(Math.random()*inputData.length)
@@ -66,7 +65,7 @@ export const runBenchmarksCollabSyncFrequently = async (crdtFactory, filter) => 
 
     // 随机生成一些文档，目的是把服务器负载压上去，可配置其它场景使用
     let count = 0;
-    while(count < 5) {
+    while(count < 20) {
       benchmarkTemplate(
         benchmarkName,
         inputData,

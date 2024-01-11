@@ -24,9 +24,11 @@ export const runBenchmarksCollabMultiMesh = async (crdtFactory, filter) => {
       docUpdateSize = docUpdateSize + update.length
     }, true, 'ws://yjs-she.test.seewo.com', 'collab_multi_mesh')
     
-    for (let i = 0; i < inputData.length; i++) {
-      changeFunction(doc, inputData[i], i)
-    }
+    doc.transact( () => {
+      for (let i = 0; i < inputData.length; i++) {
+        changeFunction(doc, inputData[i], i)
+      }
+    })
 
     // 定时统计
     let prevDocUpdateSize =  0
