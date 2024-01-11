@@ -8,7 +8,7 @@ import { CrdtFactory, AbstractCrdt } from './index.js' // eslint-disable-line
  * @param {CrdtFactory} crdtFactory
  * @param {function(string):boolean} filter
  */
-export const runBenchmarksCollabMultiUser = async (crdtFactory, filter) => {
+export const runBenchmarksCollabAswareness = async (crdtFactory, filter) => {
   /**
    * Helper function to run a B1 benchmarks.
    *
@@ -16,17 +16,14 @@ export const runBenchmarksCollabMultiUser = async (crdtFactory, filter) => {
    * @param {string} id name of the benchmark e.g. "[B1.1] Description"
    * @param {Array<T>} inputData
    * @param {function(AbstractCrdt, T, number):void} changeFunction Is called on every element in inputData
+   * @param {string} docName
    */
-  const benchmarkTemplate = (id, inputData, changeFunction) => {
+  const benchmarkTemplate = (id, inputData, changeFunction, docName) => {
     let docUpdateSize = 0
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://yjs-she.test.seewo.com', 'collab_multi_user')
-    
-    for (let i = 0; i < inputData.length; i++) {
-      changeFunction(doc, inputData[i], i)
-    }
+    }, true, 'ws://yjs-she.test.seewo.com', docName)
 
     // 定时统计
     let prevDocUpdateSize =  0
@@ -38,36 +35,27 @@ export const runBenchmarksCollabMultiUser = async (crdtFactory, filter) => {
       const startHeapUsed = 0; //getMemUsed()
       logMemoryUsed(crdtFactory.getName(), id, startHeapUsed)
 
-      setBenchmarkResult(crdtFactory.getName(), `${id} (syncDelayTime)`, doc.getSyncDelayTime())
+      setBenchmarkResult(crdtFactory.getName(), `${id} (awarenessSyncDelayTime)`, doc.getAwarenessSyncDelayTime())
 
     }, 3000);
     
     // 定时更新
-    // 多用户场景，30秒更新1个
     setInterval(() => {
-      let count = 0;
-      let randomMod = Math.ceil(Math.random()*1000)
-      while(randomMod < 1000) {
-        if(count > 0) {
-          break;
-        }
-        count++
-        changeFunction(doc, inputData[randomMod], randomMod);
-        randomMod = randomMod + randomMod;
-      }
-    }, 30000);
+      changeFunction(doc, 'key_0', 0);
+    }, 16);
   }
 
-  await runBenchmark('[CollabMultiUser] 多用户场景', filter, benchmarkName => {
+  await runBenchmark('[CollabAwareness] awareness场景', filter, benchmarkName => {
     const inputData = [];
-    for(let i = 0; i < 1000; i++) {
+    for(let i = 0; i < 1; i++) {
       inputData.push('key_' + i);
     }
     benchmarkTemplate(
       benchmarkName,
       inputData,
-      (doc, s, i) => { doc.setMap(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
-    )
+      (doc, s, i) => { doc.setAwareness(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
+      'collab_awareness'
+    ) 
   })
 
 }

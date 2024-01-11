@@ -16,17 +16,20 @@ export const runBenchmarksCollabComplex = async (crdtFactory, filter) => {
    * @param {string} id name of the benchmark e.g. "[B1.1] Description"
    * @param {Array<T>} inputData
    * @param {function(AbstractCrdt, T, number):void} changeFunction Is called on every element in inputData
+   * @param {string} docName
    */
-  const benchmarkTemplate = (id, inputData, changeFunction) => {
+  const benchmarkTemplate = (id, inputData, changeFunction, docName) => {
     let docUpdateSize = 0
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://yjs-she.test.seewo.com', 'collab_base')
+    }, true, 'ws://yjs-she.test.seewo.com', docName)
     
-    for (let i = 0; i < inputData.length; i++) {
-      changeFunction(doc, inputData[i], i)
-    }
+    doc.transact( () => {
+      for (let i = 0; i < inputData.length; i++) {
+        changeFunction(doc, inputData[i], i)
+      }
+    })
 
     // 定时统计
     let prevDocUpdateSize =  0
@@ -45,8 +48,8 @@ export const runBenchmarksCollabComplex = async (crdtFactory, filter) => {
     // 定时更新
     setInterval(() => {
       let count = 0;
-      let randomMod = Math.ceil(Math.random()*10000)
-      while(randomMod < 10000) {
+      let randomMod = Math.ceil(Math.random()*inputData.length)
+      while(randomMod < inputData.length) {
         if(count > 0) {
           break;
         }
@@ -54,7 +57,7 @@ export const runBenchmarksCollabComplex = async (crdtFactory, filter) => {
         changeFunction(doc, inputData[randomMod], randomMod);
         randomMod = randomMod + randomMod;
       }
-    }, 8);
+    }, 16);
   }
 
   await runBenchmark('[CollabComplex] 复杂场景', filter, benchmarkName => {
@@ -66,7 +69,8 @@ export const runBenchmarksCollabComplex = async (crdtFactory, filter) => {
       benchmarkName,
       inputData,
       (doc, s, i) => { doc.setMap(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
-    )
+      'collab_complex'
+    ) 
   })
 
 }

@@ -22,7 +22,7 @@ export const runBenchmarksCollabMultiMesh = async (crdtFactory, filter) => {
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://yjs-she.test.seewo.com', 'collab_base')
+    }, true, 'ws://yjs-she.test.seewo.com', 'collab_multi_mesh')
     
     for (let i = 0; i < inputData.length; i++) {
       changeFunction(doc, inputData[i], i)

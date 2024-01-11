@@ -276,4 +276,20 @@ export class AbstractCrdt {
   getSyncDelayTime() {
     error.methodUnimplemented()
   }
+
+  /**
+   * @param {string} key
+   * @param {any} val
+   */
+  setAwareness (key, val) {
+    error.methodUnimplemented()
+  }
+
+  /**
+   * 返回Awareness同步延迟数组
+   * @return {[]}
+   */
+  getAwarenessSyncDelayTime() {
+    error.methodUnimplemented()
+  }
 }

@@ -47,6 +47,7 @@ export class YjsCRDT {
     this.yarray = this.ydoc.getArray('array')
     this.ymap = this.ydoc.getMap('map')
     this.ytext = this.ydoc.getText('text')
+    this.awarenessSyncTime = [];
 
     if (connectToServer) {
       this.provider = new HocuspocusProvider(
@@ -71,6 +72,46 @@ export class YjsCRDT {
       this.provider.on("synced", () => {
         this.providerSynced = true;
       });
+
+      // this.provider.on("awarenessChange", ({ states }) => {
+      //   for(let clientState of states) {
+      //     if(clientState.clientId == this.provider?.awareness?.clientID) {
+      //       continue;
+      //     }
+      //     for(let prop in clientState) {
+      //       console.log(prop)
+      //       if(prop === 'clientId') {
+      //         continue;
+      //       }
+      //       let val = clientState[prop];
+      //       if(val.ts_) {
+      //         let now = new Date().getTime();
+      //         let ts = Math.abs(now - val.ts_);
+      //         let index = Math.floor(ts/10);
+      //         if(index < 10) {
+      //           //[0,100)
+      //           this.awarenessSyncTime[index] = (this.awarenessSyncTime[index] || 0) + 1;
+      //         } else if(index < 20) {
+      //           // [100,200)
+      //           this.awarenessSyncTime[10] = (this.awarenessSyncTime[10] || 0) + 1;
+      //         } else if(index < 50){
+      //           // [200,500)
+      //           this.awarenessSyncTime[11] = (this.awarenessSyncTime[11] || 0) + 1;
+      //         } else if(index < 100) {
+      //           // [500,1000)
+      //           this.awarenessSyncTime[12] = (this.awarenessSyncTime[12] || 0) + 1;
+      //         } else {
+      //           // [1000,)
+      //           this.awarenessSyncTime[13] = (this.awarenessSyncTime[13] || 0) + 1;
+      //         }
+      //         if(Math.abs(now - val.ts_) >= 1000) {
+      //           setBenchmarkResult(name, `${prop} (awarenessSyncTimeout)`, `${Math.abs(now - val.ts_)} ms`)
+      //         }
+      //       }
+      //     }
+      //   }
+      // });
+    
     }
 
     this.syncTime = [];
@@ -101,11 +142,17 @@ export class YjsCRDT {
             } else if(index < 20) {
               // [100,200)
               this.syncTime[10] = (this.syncTime[10] || 0) + 1;
-            } else {
-              // [200,]
+            } else if(index < 50){
+              // [200,500)
               this.syncTime[11] = (this.syncTime[11] || 0) + 1;
+            } else if(index < 100) {
+              // [500,1000)
+              this.syncTime[12] = (this.syncTime[12] || 0) + 1;
+            } else {
+              // [1000,)
+              this.syncTime[13] = (this.syncTime[13] || 0) + 1;
             }
-            if(Math.abs(now - val.ts_) >= 200) {
+            if(Math.abs(now - val.ts_) >= 1000) {
               setBenchmarkResult(name, `${key} (syncTimeout)`, `${Math.abs(now - val.ts_)} ms`)
             }
           }
@@ -236,5 +283,27 @@ export class YjsCRDT {
   getSyncDelayTime() {
     // @ts-ignore
     return this.syncTime;
+  }
+
+  /**
+   * @param {string} key
+   * @param {any} val
+   */
+  setAwareness (key, val) {
+    if(val instanceof Y.AbstractType) {
+      this.provider?.setAwarenessField(key, val);
+    } else {
+      // 包装,便于计时
+      this.provider?.setAwarenessField(key, {v_:val, clientId_: this.provider?.awareness?.clientID, ts_: new Date().getTime()})
+    }
+  }
+
+  /**
+   * 返回Awareness同步延迟数组
+   * @return {[]}
+   */
+  getAwarenessSyncDelayTime() {
+    // @ts-ignore
+    return this.awarenessSyncTime;
   }
 }
