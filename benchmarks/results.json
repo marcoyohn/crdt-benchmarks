@@ -659,6 +659,19 @@
       "ywasm": "44 ms",
       "automerge-wasm": "56 ms",
       "yjs": "59 ms"
+    },
+    "[CollabMemDoc] 内存-单一文档场景 (memUsed)": {
+      "yjs:before doc create": "42.1 MB",
+      "yjs:after doc create": "42.2 MB",
+      "yjs:after doc update 10000 size": "46.9 MB",
+      "yjs:after doc insert 1000 item": "42.5 MB",
+      "yjs:after doc insert 10000 item": "47 MB"
+    },
+    "[CollabMemDocUpdate] 内存-文档更新内存增长场景 (memUsed)": {
+      "yjs:before doc create": "42.1 MB",
+      "yjs:after doc create": "42.2 MB",
+      "yjs:after doc insert 1000 item": "42.5 MB",
+      "yjs:after doc insert 10000 item": "46.9 MB"
     }
   }
 }

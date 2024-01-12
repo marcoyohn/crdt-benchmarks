@@ -1,4 +1,4 @@
-import { setBenchmarkResult, gen, N, benchmarkTime, logMemoryUsed, getMemUsed, runBenchmark } from './utils.js'
+import { setBenchmarkResult, gen, N, benchmarkTime, logMemoryUsed, getMemUsed, runBenchmark, tryGc } from './utils.js'
 import * as prng from 'lib0/prng'
 import * as math from 'lib0/math'
 import * as t from 'lib0/testing'
@@ -8,7 +8,7 @@ import { CrdtFactory, AbstractCrdt } from './index.js' // eslint-disable-line
  * @param {CrdtFactory} crdtFactory
  * @param {function(string):boolean} filter
  */
-export const runBenchmarksCollabComplex = async (crdtFactory, filter) => {
+export const runBenchmarksCollabMemDocUpdate100w = async (crdtFactory, filter) => {
   /**
    * Helper function to run a B1 benchmarks.
    *
@@ -16,61 +16,56 @@ export const runBenchmarksCollabComplex = async (crdtFactory, filter) => {
    * @param {string} id name of the benchmark e.g. "[B1.1] Description"
    * @param {Array<T>} inputData
    * @param {function(AbstractCrdt, T, number):void} changeFunction Is called on every element in inputData
-   * @param {string} docName
    */
-  const benchmarkTemplate = (id, inputData, changeFunction, docName) => {
+  const benchmarkTemplate = (id, inputData, changeFunction, docName, totalUpdateCount) => {
+    let updateCount = 0;
     let docUpdateSize = 0
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
+    tryGc()
+    logMemoryUsed(crdtFactory.getName() + ":before doc create", id, 0)
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
     }, true, 'ws://yjs-she.test.seewo.com', docName)
-    
+    logMemoryUsed(crdtFactory.getName() + ":after doc create", id, 0)
     doc.transact( () => {
       for (let i = 0; i < inputData.length; i++) {
         changeFunction(doc, inputData[i], i)
       }
     })
+    logMemoryUsed(crdtFactory.getName() + `:after doc insert ${inputData.length} item`, id, 0)
+s://yjs-she.test.seewo.com', docName)
 
-    // 定时统计
-    let prevDocUpdateSize =  0
-    setInterval(() => {
-      setBenchmarkResult(crdtFactory.getName(), `${id} (totalItemSize)`, `${doc.getItemSize()} 个`)
-      setBenchmarkResult(crdtFactory.getName(), `${id} (updateSize)`, `${math.round(docUpdateSize - prevDocUpdateSize)} bytes`)
-      prevDocUpdateSize = docUpdateSize;
-
-      const startHeapUsed = 0; //getMemUsed()
-      logMemoryUsed(crdtFactory.getName(), id, startHeapUsed)
-
-      setBenchmarkResult(crdtFactory.getName(), `${id} (syncDelayTime)`, doc.getSyncDelayTime())
-
-    }, 3000);
-    
     // 定时更新
     setInterval(() => {
-      let count = 0;
-      let randomMod = Math.ceil(Math.random()*inputData.length)
-      while(randomMod < inputData.length) {
-        if(count > 0) {
-          break;
+      doc.transact( () => {
+        for (let i = 0; i < inputData.length; i++) {
+          if(updateCount >= totalUpdateCount) {
+            // 超过则退出
+            break;
+          }
+          changeFunction(doc, inputData[i], i)
+          updateCount = updateCount + 1;
         }
-        count++
-        changeFunction(doc, inputData[randomMod], randomMod);
-        randomMod = randomMod + randomMod;
-      }
-    }, 16);
+      })
+      tryGc()
+      logMemoryUsed(crdtFactory.getName() + `:after doc total update ${updateCount} item`, id, 0)
+    }, 3000);
+    
   }
 
-  await runBenchmark('[CollabComplex] 复杂场景', filter, benchmarkName => {
+  await runBenchmark('[CollabMemDocUpdate] 内存-文档更新内存增长场景', filter, benchmarkName => {
     const inputData = [];
     for(let i = 0; i < 10000; i++) {
       inputData.push('key_' + i);
     }
+
     benchmarkTemplate(
       benchmarkName,
       inputData,
       (doc, s, i) => { doc.setMap(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
-      'collab_complex'
-    ) 
+      'CollabMemDocUpdate',
+      1000000
+    )
   })
 
 }

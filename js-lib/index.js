@@ -1,12 +1,13 @@
 import { CrdtFactory } from './utils.js' // eslint-disable-line
 
-import { runBenchmarksCollabBase } from '../js-lib/collab_base.js'
-import { runBenchmarksCollabComplex } from './collab_complex.js'
-import { runBenchmarksCollabMultiUser } from './collab_multi_user.js'
-import { runBenchmarksCollabMultiMesh } from './collab_multi_mesh.js'
+import { runBenchmarksCollabDelayBase } from './collab_delay_base.js'
+import { runBenchmarksCollabDelayDocUpdateFrequently } from './collab_delay_doc_update_frequently.js'
+import { runBenchmarksCollabMemDoc } from './collab_mem_doc.js'
 import { runBenchmarksCollabMock } from './collab_mock.js'
 import { runBenchmarksCollabCpuDocUpdate } from './collab_cpu_doc_update.js'
 import { runBenchmarksCollabCpuAwareness } from './collab_cpu_awareness.js'
+import { runBenchmarksCollabMemDocUpdate1w } from './collab_mem_doc_update_1w.js'
+import { runBenchmarksCollabMemDocUpdate100w } from './collab_mem_doc_update_100w.js'
 export * from './b4-editing-trace.js'
 export * from './utils.js'
 
@@ -15,12 +16,16 @@ export * from './utils.js'
  * @param {function(string):boolean} testFilter
  */
 export const runBenchmarks = async (crdtFactory, testFilter) => {
-  //await runBenchmarksCollabBase(crdtFactory, testFilter);
-  //await runBenchmarksCollabMultiUser(crdtFactory, testFilter);
-  //await runBenchmarksCollabMultiMesh(crdtFactory, testFilter);
-  //await runBenchmarksCollabCpuDocUpdate(crdtFactory, testFilter);
-  //await runBenchmarksCollabComplex(crdtFactory, testFilter);
-  //await runBenchmarksCollabMock(crdtFactory, testFilter);
-  await runBenchmarksCollabCpuAwareness(crdtFactory, testFilter);
+  //await runBenchmarksCollabDelayBase(crdtFactory, testFilter);
+  //await runBenchmarksCollabDelayDocUpdateFrequently(crdtFactory, testFilter);
 
+  //await runBenchmarksCollabMemDoc(crdtFactory, testFilter);
+  //await runBenchmarksCollabMemDocUpdate1w(crdtFactory, testFilter);
+  await runBenchmarksCollabMemDocUpdate100w(crdtFactory, testFilter);
+  
+  
+  //await runBenchmarksCollabCpuDocUpdate(crdtFactory, testFilter);
+  //await runBenchmarksCollabCpuAwareness(crdtFactory, testFilter);
+
+  //await runBenchmarksCollabMock(crdtFactory, testFilter);
 }
