@@ -167,7 +167,15 @@ export class YjsCRDT {
    * @return {Uint8Array|string}
    */
   getEncodedState () {
-    return Y.encodeStateAsUpdateV2(this.ydoc)
+    return Y.encodeStateAsUpdate(this.ydoc)
+  }
+
+  /**
+   * @param {Array<Uint8Array>} updates
+   * @return {Uint8Array}
+   */
+  mergeUpdates(updates) {
+    return Y.mergeUpdates(updates)
   }
 
   /**

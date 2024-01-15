@@ -171,6 +171,14 @@ export class AbstractCrdt {
   }
 
   /**
+   * @param {Array<Uint8Array>} updates
+   * @return {Uint8Array}
+   */
+  mergeUpdates(updates) {
+    error.methodUnimplemented()
+  }
+
+  /**
    * @param {Uint8Array|string} update
    */
   applyUpdate (update) {
