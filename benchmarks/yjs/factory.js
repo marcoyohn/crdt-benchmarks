@@ -3,9 +3,7 @@ import { setBenchmarkResult, gen, N, benchmarkTime, logMemoryUsed, getMemUsed, r
 import { AbstractCrdt, CrdtFactory } from '../../js-lib/index.js' // eslint-disable-line
 import * as Y from 'yjs'
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
-// import { WebsocketProvider } from "y-websocket";
-import * as pkg from 'y-websocket';
-const { WebsocketProvider } = pkg;
+import { WebsocketProvider } from './y-websocket.js';
 import ws from 'ws'
 
 export const name = 'yjs'
@@ -310,10 +308,12 @@ export class YjsCRDT {
    */
   setAwareness (key, val) {
     if(val instanceof Y.AbstractType) {
-      this.provider?.setAwarenessField(key, val);
+      //this.provider?.setAwarenessField(key, val);
+      this.provider?.awareness.setLocalStateField(key, val);
     } else {
       // 包装,便于计时
-      this.provider?.setAwarenessField(key, {v_:val, clientId_: this.provider?.awareness?.clientID, ts_: new Date().getTime()})
+      // this.provider?.setAwarenessField(key, {v_:val, clientId_: this.provider?.awareness?.clientID, ts_: new Date().getTime()})
+      this.provider?.awareness.setLocalStateField(key, {v_:val, clientId_: this.provider?.awareness?.clientID, ts_: new Date().getTime()})
     }
   }
 
