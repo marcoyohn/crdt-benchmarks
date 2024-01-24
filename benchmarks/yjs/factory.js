@@ -3,7 +3,10 @@ import { setBenchmarkResult, gen, N, benchmarkTime, logMemoryUsed, getMemUsed, r
 import { AbstractCrdt, CrdtFactory } from '../../js-lib/index.js' // eslint-disable-line
 import * as Y from 'yjs'
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
-import WebSocket from 'ws'
+// import { WebsocketProvider } from "y-websocket";
+import * as pkg from 'y-websocket';
+const { WebsocketProvider } = pkg;
+import ws from 'ws'
 
 export const name = 'yjs'
 
@@ -50,26 +53,34 @@ export class YjsCRDT {
     this.awarenessSyncTime = [];
 
     if (connectToServer) {
-      this.provider = new HocuspocusProvider(
-        {
-          websocketProvider: new HocuspocusProviderWebsocket({
-            // We don’t need which port the server is running on, but
-            // we can get the URL from the passed server instance.
-            url: serverUrl, //"ws://yjs-she.test.seewo.com",
-            parameters: {wopiEnabled: '0', yDocField: 'map'},
-            // Pass a polyfill to use WebSockets in a Node.js environment.
-            WebSocketPolyfill: WebSocket,
-          }),
-          name: documentName,
-          document: this.ydoc,
-          preserveConnection: false,
-          token: "mock",
-          //token: "eyJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIxMzM2ODc1MjgxMjg1MTM7c21odHF6bmpnd3ZudndycHV4c3lxcnk1N201NDI1MTE7MSIsImV4cCI6MTcwNDc5OTk4M30.Wv9JOfMwMcdhbn8RXgAXFzU8dY6JPox0xpIxcTOP31ewhqQec6cfwy0oJFrKNVA8F2KakBZRjipVBPtgCd7s0bHuQca-3GCHLxIf_UvywgLB9KGrdaeiwNaXSCEPzq7aakwQyZ4M1Jy91FEJSp-CYzz_kCJAOCXkoXrRpyRuKCUXPL7H41WeaQMtv86YUKsRVfodKlwYqtRxhLaj84JyFrSBVsgAtijZBcuDZKJKVISjXCOoOVxp8swAw-jRMSV_P_zdc-njIz59c_qMR5u2h8H9oW8aeGzoAiVVBs8CZFa5OQ7a56meZF0egb2M3jmVoJgng2SLAU12aXZ4Gql-1C46kKjZ10KLd94CW3PGzfmtsZ9xuGJm4HQnVBdstFxFH5FIsZRC5Ig7f3vyWB8molFzb8RVPDXWM747TA7i8wWz7VHMEWVO6MKbovTjgMBFoT5K6bseyTptrfIEuf4Z0FjSycmHh15hjsPQf3lVD_g1lCY5CBCOjpiUGqN-dWE3t31Nxsp3hGGlWxsl6TJdYwF-k4lgD7WuCZPex-sjWCDEBidf8aBjl_z6ZBiowBjNoelWK4A-3wCGT1Sx-OyrBZQgrF64KkbjhnFjmWDEgAUxTpNSKNzgFGYoaZEOvndXKBQ-jVxEzbZgrrOkHt5yUg0DjUyv5H_fXAgbVK5Pfps"
+      // this.provider = new HocuspocusProvider(
+      //   {
+      //     websocketProvider: new HocuspocusProviderWebsocket({
+      //       // We don’t need which port the server is running on, but
+      //       // we can get the URL from the passed server instance.
+      //       url: serverUrl, //"ws://yjs-she.test.seewo.com",
+      //       parameters: {wopiEnabled: '0', yDocField: 'map'},
+      //       // Pass a polyfill to use WebSockets in a Node.js environment.
+      //       WebSocketPolyfill: ws,
+      //     }),
+      //     name: documentName,
+      //     document: this.ydoc,
+      //     preserveConnection: false,
+      //     token: "mock",
+      //     //token: "eyJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIxMzM2ODc1MjgxMjg1MTM7c21odHF6bmpnd3ZudndycHV4c3lxcnk1N201NDI1MTE7MSIsImV4cCI6MTcwNDc5OTk4M30.Wv9JOfMwMcdhbn8RXgAXFzU8dY6JPox0xpIxcTOP31ewhqQec6cfwy0oJFrKNVA8F2KakBZRjipVBPtgCd7s0bHuQca-3GCHLxIf_UvywgLB9KGrdaeiwNaXSCEPzq7aakwQyZ4M1Jy91FEJSp-CYzz_kCJAOCXkoXrRpyRuKCUXPL7H41WeaQMtv86YUKsRVfodKlwYqtRxhLaj84JyFrSBVsgAtijZBcuDZKJKVISjXCOoOVxp8swAw-jRMSV_P_zdc-njIz59c_qMR5u2h8H9oW8aeGzoAiVVBs8CZFa5OQ7a56meZF0egb2M3jmVoJgng2SLAU12aXZ4Gql-1C46kKjZ10KLd94CW3PGzfmtsZ9xuGJm4HQnVBdstFxFH5FIsZRC5Ig7f3vyWB8molFzb8RVPDXWM747TA7i8wWz7VHMEWVO6MKbovTjgMBFoT5K6bseyTptrfIEuf4Z0FjSycmHh15hjsPQf3lVD_g1lCY5CBCOjpiUGqN-dWE3t31Nxsp3hGGlWxsl6TJdYwF-k4lgD7WuCZPex-sjWCDEBidf8aBjl_z6ZBiowBjNoelWK4A-3wCGT1Sx-OyrBZQgrF64KkbjhnFjmWDEgAUxTpNSKNzgFGYoaZEOvndXKBQ-jVxEzbZgrrOkHt5yUg0DjUyv5H_fXAgbVK5Pfps"
           
-        } 
+      //   } 
+      // );
+
+      this.provider = new WebsocketProvider(
+        serverUrl,
+        documentName,
+        this.ydoc,
+        { WebSocketPolyfill: ws }
       );
 
-      this.provider.on("synced", () => {
+      // this.provider.on("synced", () => {
+      this.provider.on("sync", () => {
         this.providerSynced = true;
       });
 

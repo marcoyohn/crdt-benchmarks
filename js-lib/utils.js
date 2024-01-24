@@ -164,7 +164,7 @@ export class AbstractCrdt {
   }
 
   /**
-   * @return {Uint8Array|string}
+   * @return {Uint8Array}
    */
   getEncodedState () {
     error.methodUnimplemented()

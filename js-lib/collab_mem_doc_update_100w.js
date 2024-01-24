@@ -21,13 +21,16 @@ export const runBenchmarksCollabMemDocUpdate100w = async (crdtFactory, filter) =
     let updateCount = 0;
     let docUpdateSize = 0
     const docUpdates = []
+    let docEncodeState
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     tryGc()
     logMemoryUsed(crdtFactory.getName() + ":before doc create", id, 0)
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-      docUpdates.push(update)
+      //docUpdates.push(update)
+      //docEncodeState = doc.mergeUpdates([docEncodeState, update])
     }, true, 'ws://yjs-she.test.seewo.com', docName)
+    docEncodeState = doc.getEncodedState();
     logMemoryUsed(crdtFactory.getName() + ":after doc create", id, 0)
     doc.transact( () => {
       for (let i = 0; i < inputData.length; i++) {
@@ -36,7 +39,7 @@ export const runBenchmarksCollabMemDocUpdate100w = async (crdtFactory, filter) =
     })
     logMemoryUsed(crdtFactory.getName() + `:after doc insert ${inputData.length} item`, id, 0)
 
-    let docEncodeState = doc.getEncodedState();
+    
     // 定时更新
     setInterval(() => {
       doc.transact( () => {
@@ -54,7 +57,7 @@ export const runBenchmarksCollabMemDocUpdate100w = async (crdtFactory, filter) =
       setBenchmarkResult(crdtFactory.getName(), `${id} (encodedStateSize)`, `${doc.getEncodedState().length} bytes`)
       setBenchmarkResult(crdtFactory.getName(), `${id} (updatesTotalSize)`, `${math.round(docUpdateSize)} bytes`)
       setBenchmarkResult(crdtFactory.getName(), `${id} (mergeUpdatesTotalSize)`, `${doc.mergeUpdates(docUpdates).length} bytes`)
-      setBenchmarkResult(crdtFactory.getName(), `${id} (mergeUpdatesBaseEncodeStateTotalSize)`, `${doc.mergeUpdates([docEncodeState, ...docUpdates]).length} bytes`)
+      setBenchmarkResult(crdtFactory.getName(), `${id} (mergeUpdatesBaseEncodeStateTotalSize)`, `${docEncodeState.length} bytes`)
     
     }, 3000);
     
