@@ -17,15 +17,15 @@ export * from './utils.js'
  */
 export const runBenchmarks = async (crdtFactory, testFilter) => {
   //await runBenchmarksCollabDelayBase(crdtFactory, testFilter);
-  //await runBenchmarksCollabDelayDocUpdateFrequently(crdtFactory, testFilter);
+  // await runBenchmarksCollabDelayDocUpdateFrequently(crdtFactory, testFilter);
 
   //await runBenchmarksCollabMemDoc(crdtFactory, testFilter);
   //await runBenchmarksCollabMemDocUpdate1w(crdtFactory, testFilter);
   //await runBenchmarksCollabMemDocUpdate100w(crdtFactory, testFilter);
   
   
-  //await runBenchmarksCollabCpuDocUpdate(crdtFactory, testFilter);
-  await runBenchmarksCollabCpuAwareness(crdtFactory, testFilter);
+  await runBenchmarksCollabCpuDocUpdate(crdtFactory, testFilter);
+  //await runBenchmarksCollabCpuAwareness(crdtFactory, testFilter);
 
   //await runBenchmarksCollabMock(crdtFactory, testFilter);
 }

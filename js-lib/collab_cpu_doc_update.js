@@ -22,7 +22,7 @@ export const runBenchmarksCollabCpuDocUpdate = async (crdtFactory, filter) => {
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://172.30.111.2:1234/ws/' + docName, docName)
+    }, true, 'ws://172.30.119.160:1234/ws/' + docName, docName)
     
     doc.transact( () => {
       for (let i = 0; i < inputData.length; i++) {
