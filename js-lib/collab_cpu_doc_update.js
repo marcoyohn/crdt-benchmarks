@@ -22,7 +22,7 @@ export const runBenchmarksCollabCpuDocUpdate = async (crdtFactory, filter) => {
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://172.30.119.160:1234/ws/' + docName, docName)
+    }, true, 'ws://172.30.119.150:3008/cowork/', docName + ".cowork")
     
     doc.transact( () => {
       for (let i = 0; i < inputData.length; i++) {
@@ -33,6 +33,8 @@ export const runBenchmarksCollabCpuDocUpdate = async (crdtFactory, filter) => {
     // 定时统计
     let prevDocUpdateSize =  0
     setInterval(() => {
+      setBenchmarkResult(crdtFactory.getName(), `${id} (encodedStateSize-v1)`, `${doc.getEncodedState("1").length} bytes`)
+      setBenchmarkResult(crdtFactory.getName(), `${id} (encodedStateSize-v2)`, `${doc.getEncodedState("2").length} bytes`)
       setBenchmarkResult(crdtFactory.getName(), `${id} (totalItemSize)`, `${doc.getItemSize()} 个`)
       setBenchmarkResult(crdtFactory.getName(), `${id} (updateSize)`, `${math.round(docUpdateSize - prevDocUpdateSize)} bytes`)
       prevDocUpdateSize = docUpdateSize;

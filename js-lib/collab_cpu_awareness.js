@@ -21,7 +21,7 @@ export const runBenchmarksCollabCpuAwareness = async (crdtFactory, filter) => {
     let totalItemSize = 0
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
-    }, true, 'ws://127.0.0.1:1234/ws/' + docName, docName)
+    }, true, 'ws://172.30.119.150:3008/cowork/', docName + ".cowork")
 
     // 定时统计
     let prevDocUpdateSize =  0

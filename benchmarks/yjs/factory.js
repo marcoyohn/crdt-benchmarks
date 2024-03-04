@@ -74,7 +74,10 @@ export class YjsCRDT {
         serverUrl,
         documentName,
         this.ydoc,
-        { WebSocketPolyfill: ws }
+        {
+          WebSocketPolyfill: ws,
+          params: {token: 'xx-token', wopi_base_url: 'mock', crdt_branch: '1'},
+        }
       );
 
       // this.provider.on("synced", () => {
@@ -175,8 +178,12 @@ export class YjsCRDT {
   /**
    * @return {Uint8Array|string}
    */
-  getEncodedState () {
-    return Y.encodeStateAsUpdate(this.ydoc)
+  getEncodedState (encode = "1") {
+    if(encode === "1") {
+      return Y.encodeStateAsUpdate(this.ydoc)
+    } else {
+      return Y.encodeStateAsUpdateV2(this.ydoc)
+    }    
   }
 
   /**

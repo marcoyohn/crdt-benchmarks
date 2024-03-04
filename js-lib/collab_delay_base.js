@@ -22,7 +22,7 @@ export const runBenchmarksCollabDelayBase = async (crdtFactory, filter) => {
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://yjs-she.test.seewo.com', docName)
+    }, true, 'ws://127.0.0.1:1234/ws/' + docName, docName)
     
     doc.transact( () => {
       for (let i = 0; i < inputData.length; i++) {
@@ -54,7 +54,9 @@ export const runBenchmarksCollabDelayBase = async (crdtFactory, filter) => {
           break;
         }
         count++
-        changeFunction(doc, inputData[randomMod], randomMod);
+        benchmarkTime(crdtFactory.getName(), `${id} (doc setMap Time)`, () => {
+          changeFunction(doc, inputData[randomMod], randomMod);
+        })
         randomMod = randomMod + randomMod;
       }
     }, 1000);
@@ -68,7 +70,15 @@ export const runBenchmarksCollabDelayBase = async (crdtFactory, filter) => {
     benchmarkTemplate(
       benchmarkName,
       inputData,
-      (doc, s, i) => { doc.setMap(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
+      // (doc, s, i) => { doc.setMap(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
+      (doc, s, i) => { 
+        var start = performance.now();
+
+        doc.setMap(s, 'ClientId_'); 
+        // call your function
+        var end = performance.now();
+        console.log(`change ${i}, cost is`, `${end - start}ms`)
+      },
       'CollabDelayBase'
     )
   })

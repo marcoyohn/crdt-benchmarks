@@ -44,7 +44,7 @@ export const benchmarkTime = (libname, id, f) => {
   const start = perf.now()
   f()
   const time = perf.now() - start
-  setBenchmarkResult(libname, id, `${time.toFixed(0)} ms`)
+  setBenchmarkResult(libname, id, `${time.toFixed(3)} ms`)
 }
 
 /**
@@ -166,7 +166,7 @@ export class AbstractCrdt {
   /**
    * @return {Uint8Array}
    */
-  getEncodedState () {
+  getEncodedState (encode) {
     error.methodUnimplemented()
   }
 

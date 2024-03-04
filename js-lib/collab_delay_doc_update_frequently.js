@@ -20,10 +20,9 @@ export const runBenchmarksCollabDelayDocUpdateFrequently = async (crdtFactory, f
    */
   const benchmarkTemplate = (id, inputData, changeFunction, docName) => {
     let docUpdateSize = 0
-    // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://172.30.85.130:1234/ws/' + docName, docName)
+    }, true, 'ws://172.30.105.132:1234/ws/' + docName, docName)
     
     doc.transact( () => {
       for (let i = 0; i < inputData.length; i++) {
@@ -68,7 +67,12 @@ export const runBenchmarksCollabDelayDocUpdateFrequently = async (crdtFactory, f
     benchmarkTemplate(
       benchmarkName,
       inputData,
-      (doc, s, i) => { doc.setMap(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) },
+      (doc, s, i) => { 
+        var start = performance.now();
+        doc.setMap(s, 'ClientId_' + doc.getClientId() + ':' + new Date().getTime()) 
+        var end = performance.now();
+        console.log(`change ${i}, cost is`, `${end - start} ms`)
+      },
       'CollabDelayDocUpdateFrequently'
     ) 
   })
