@@ -22,7 +22,7 @@ export const runBenchmarksCollabDelayBase = async (crdtFactory, filter) => {
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://127.0.0.1:1234/ws/' + docName, docName)
+    }, true, 'ws://127.0.0.1:1234/ws/', docName + ".cowork")
     
     doc.transact( () => {
       for (let i = 0; i < inputData.length; i++) {
@@ -48,8 +48,8 @@ export const runBenchmarksCollabDelayBase = async (crdtFactory, filter) => {
     // 简单场景，1秒更新1个
     setInterval(() => {
       let count = 0;
-      let randomMod = Math.ceil(Math.random()*1000)
-      while(randomMod < 1000) {
+      let randomMod = Math.ceil(Math.random()*inputData.length)
+      while(randomMod < inputData.length) {
         if(count > 0) {
           break;
         }
@@ -59,12 +59,12 @@ export const runBenchmarksCollabDelayBase = async (crdtFactory, filter) => {
         })
         randomMod = randomMod + randomMod;
       }
-    }, 1000);
+    }, 16);
   }
 
   await runBenchmark('[CollabDelayBase] 同步延迟基本场景', filter, benchmarkName => {
     const inputData = [];
-    for(let i = 0; i < 1000; i++) {
+    for(let i = 0; i < 2; i++) {
       inputData.push('key_' + i);
     }
     benchmarkTemplate(
