@@ -24,8 +24,8 @@ export const runBenchmarks = async (crdtFactory, testFilter) => {
   // await runBenchmarksCollabMemDocUpdate100w(crdtFactory, testFilter);
   
   
-  await runBenchmarksCollabCpuDocUpdate(crdtFactory, testFilter);
-  // await runBenchmarksCollabCpuAwareness(crdtFactory, testFilter);
+  // await runBenchmarksCollabCpuDocUpdate(crdtFactory, testFilter);
+  await runBenchmarksCollabCpuAwareness(crdtFactory, testFilter);
 
   //await runBenchmarksCollabMock(crdtFactory, testFilter);
 }
