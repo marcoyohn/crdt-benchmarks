@@ -15,11 +15,14 @@ import * as awarenessProtocol from 'y-protocols/awareness'
 import { Observable } from 'lib0/observable'
 import * as math from 'lib0/math'
 import * as url from 'lib0/url'
+import * as env from 'lib0/environment'
 
 export const messageSync = 0
 export const messageQueryAwareness = 3
 export const messageAwareness = 1
 export const messageAuth = 2
+export const messagePermissionDenied = 0
+export const messagePermissionAllowed = 1
 
 /**
  *                       encoder,          decoder,          provider,          emitSynced, messageType
@@ -87,11 +90,43 @@ messageHandlers[messageAuth] = (
   _emitSynced,
   _messageType
 ) => {
-  authProtocol.readAuthMessage(
-    decoder,
-    provider.doc,
-    (_ydoc, reason) => permissionDeniedHandler(provider, reason)
-  )
+  switch (decoding.readVarUint(decoder)) {
+    case messagePermissionAllowed: 
+      //send sync step 1 when authed
+      const encoder = encoding.createEncoder();
+      encoding.writeVarUint(encoder, messageSync);
+      syncProtocol.writeSyncStep1(encoder, provider.doc);
+      // @ts-ignore
+      provider['ws'].send(encoding.toUint8Array(encoder));    
+      
+      // broadcast local awareness state
+      if (provider.awareness.getLocalState() !== null) {
+        const encoderAwarenessState = encoding.createEncoder()
+        encoding.writeVarUint(encoderAwarenessState, messageAwareness)
+        encoding.writeVarUint8Array(
+          encoderAwarenessState,
+          awarenessProtocol.encodeAwarenessUpdate(provider.awareness, [
+            provider.doc.clientID
+          ])
+        )
+        // @ts-ignore
+        provider['ws'].send(encoding.toUint8Array(encoderAwarenessState))
+      }
+
+      // write queryAwareness
+      const encoderAwarenessQuery = encoding.createEncoder()
+      encoding.writeVarUint(encoderAwarenessQuery, messageQueryAwareness)
+      // @ts-ignore
+      provider['ws'].send(encoding.toUint8Array(encoderAwarenessQuery));
+
+      // emit message
+      provider.emit('authed-success', [{
+      }])
+      break;
+    case messagePermissionDenied: 
+      permissionDeniedHandler(provider, decoding.readVarString(decoder));
+      break;
+  }
 }
 
 // @todo - this should depend on awareness.outdatedTime
@@ -101,8 +136,22 @@ const messageReconnectTimeout = 30000
  * @param {WebsocketProvider} provider
  * @param {string} reason
  */
-const permissionDeniedHandler = (provider, reason) =>
-  console.warn(`Permission denied to access ${provider.url}.\n${reason}`)
+const permissionDeniedHandler = (provider, reason) => {
+  console.warn(`Permission denied to access ${provider.url}.\n${reason}`);
+  if (reason === 'NotAuth' 
+      || reason === 'WrongHashServer') {
+    // try reconnect
+    provider.disconnect();
+    provider.connect();
+  } else {
+    // CredentialFailed NotPermission DocInitFailed CrdtBranchNotMatched
+    // emit message
+    provider.emit('authed-fail', [{
+      reason: reason
+    }])
+  }
+}
+  
 
 /**
  * @param {WebsocketProvider} provider
@@ -185,23 +234,6 @@ const setupWS = (provider) => {
       provider.emit('status', [{
         status: 'connected'
       }])
-      // always send sync step 1 when connected
-      const encoder = encoding.createEncoder()
-      encoding.writeVarUint(encoder, messageSync)
-      syncProtocol.writeSyncStep1(encoder, provider.doc)
-      websocket.send(encoding.toUint8Array(encoder))
-      // broadcast local awareness state
-      if (provider.awareness.getLocalState() !== null) {
-        const encoderAwarenessState = encoding.createEncoder()
-        encoding.writeVarUint(encoderAwarenessState, messageAwareness)
-        encoding.writeVarUint8Array(
-          encoderAwarenessState,
-          awarenessProtocol.encodeAwarenessUpdate(provider.awareness, [
-            provider.doc.clientID
-          ])
-        )
-        websocket.send(encoding.toUint8Array(encoderAwarenessState))
-      }
     }
     provider.emit('status', [{
       status: 'connecting'
@@ -257,7 +289,7 @@ export class WebsocketProvider extends Observable {
     WebSocketPolyfill = WebSocket,
     resyncInterval = -1,
     maxBackoffTime = 2500,
-    disableBc = false
+    disableBc = true
   } = {}) {
     super()
     // ensure that url is always ends with /
@@ -266,8 +298,8 @@ export class WebsocketProvider extends Observable {
     }
     const encodedParams = url.encodeQueryParams(params)
     this.maxBackoffTime = maxBackoffTime
-    this.bcChannel = serverUrl + '/' + roomname
-    this.url = serverUrl + '/' + roomname +
+    this.bcChannel = serverUrl + '/' + roomname + ".cowork"
+    this.url = serverUrl + '/' + roomname + ".cowork" +
       (encodedParams.length === 0 ? '' : '?' + encodedParams)
     this.roomname = roomname
     this.doc = doc
@@ -329,6 +361,10 @@ export class WebsocketProvider extends Observable {
      */
     this._updateHandler = (update, origin) => {
       if (origin !== this) {
+        if(!this._synced) {
+          console.warn("provider not synced, ignore sync doc update", update);
+          return;
+        }
         const encoder = encoding.createEncoder()
         encoding.writeVarUint(encoder, messageSync)
         syncProtocol.writeUpdate(encoder, update)
@@ -341,6 +377,10 @@ export class WebsocketProvider extends Observable {
      * @param {any} _origin
      */
     this._awarenessUpdateHandler = ({ added, updated, removed }, _origin) => {
+      if(!this._synced) {
+        console.warn("provider not synced, ignore sync awareness update");
+        return;
+      }
       const changedClients = added.concat(updated).concat(removed)
       const encoder = encoding.createEncoder()
       encoding.writeVarUint(encoder, messageAwareness)
@@ -350,17 +390,15 @@ export class WebsocketProvider extends Observable {
       )
       broadcastMessage(this, encoding.toUint8Array(encoder))
     }
-    this._unloadHandler = () => {
+    this._exitHandler = () => {
       awarenessProtocol.removeAwarenessStates(
         this.awareness,
         [doc.clientID],
-        'window unload'
+        'app closed'
       )
     }
-    if (typeof window !== 'undefined') {
-      window.addEventListener('unload', this._unloadHandler)
-    } else if (typeof process !== 'undefined') {
-      process.on('exit', this._unloadHandler)
+    if (env.isNode && typeof process !== 'undefined') {
+      process.on('exit', this._exitHandler)
     }
     awareness.on('update', this._awarenessUpdateHandler)
     this._checkInterval = /** @type {any} */ (setInterval(() => {
@@ -400,10 +438,8 @@ export class WebsocketProvider extends Observable {
     }
     clearInterval(this._checkInterval)
     this.disconnect()
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('unload', this._unloadHandler)
-    } else if (typeof process !== 'undefined') {
-      process.off('exit', this._unloadHandler)
+    if (env.isNode && typeof process !== 'undefined') {
+      process.off('exit', this._exitHandler)
     }
     this.awareness.off('update', this._awarenessUpdateHandler)
     this.doc.off('update', this._updateHandler)

@@ -22,7 +22,7 @@ export const runBenchmarksCollabDelayBase = async (crdtFactory, filter) => {
     // https://hub-she.seewo.com/she-engine-res-hub/wopi/files/133687528128513/133687532322817
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://127.0.0.1:1234/ws/', docName + ".cowork")
+    }, true, 'ws://127.0.0.1:1234/ws/', docName)
     
     doc.transact( () => {
       for (let i = 0; i < inputData.length; i++) {

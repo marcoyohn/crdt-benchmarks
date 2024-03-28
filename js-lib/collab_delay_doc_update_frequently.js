@@ -22,7 +22,7 @@ export const runBenchmarksCollabDelayDocUpdateFrequently = async (crdtFactory, f
     let docUpdateSize = 0
     const doc = crdtFactory.create((update, local) => {
       docUpdateSize = docUpdateSize + update.length
-    }, true, 'ws://172.30.84.17:1234/ws/', docName + ".cowork")
+    }, true, 'ws://172.30.84.17:1234/ws/', docName)
     
     doc.transact( () => {
       for (let i = 0; i < inputData.length; i++) {
