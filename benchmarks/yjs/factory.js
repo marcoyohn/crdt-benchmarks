@@ -72,7 +72,7 @@ export class YjsCRDT {
 
       this.provider = new WebsocketProvider(
         serverUrl,
-        documentName,
+        'mock/' + documentName,
         this.ydoc,
         {
           WebSocketPolyfill: ws,
